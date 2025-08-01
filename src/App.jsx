@@ -10,6 +10,8 @@ import { Button } from './ui/button';
 import DashboardView from './components/views/DashboardView';
 import PosView from './components/views/PosView';
 import TicketView from './components/views/TicketView';
+// Importa el nuevo componente
+import StockListView from './components/views/StockListView'; 
 
 // Tu configuración de Firebase. Asegúrate de que estos valores sean los correctos.
 const firebaseConfig = {
@@ -35,6 +37,20 @@ const ScanIcon = () => (
         <line x1="7" x2="17" y1="12" y2="12"/>
     </svg>
 );
+
+// Icono para la vista de stock
+const ListIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list-checks">
+        <path d="m3 16 2-2 2 2" />
+        <path d="M7 6h14" />
+        <path d="M7 12h14" />
+        <path d="M7 18h14" />
+        <path d="M3 6h.01" />
+        <path d="M3 12h.01" />
+        <path d="M3 18h.01" />
+    </svg>
+);
+
 
 const App = () => {
     const [currentView, setCurrentView] = useState('dashboard');
@@ -158,7 +174,7 @@ const App = () => {
                 } catch (err) {
                     console.error('Error al acceder a la cámara:', err);
                     setIsScanning(false);
-                    alert("Error: No se pudo acceder a la cámara. Asegúrate de dar los permisos necesarios.");
+                    // Usar un modal o un mensaje en la UI en lugar de alert()
                 }
             };
             startStream();
@@ -196,7 +212,8 @@ const App = () => {
 
     const handleAddProduct = async (productData) => {
         if (!scanResult || !productData.name || productData.price <= 0 || productData.stock <= 0) {
-            alert("Por favor, completa todos los campos del producto.");
+            // Usar un modal o un mensaje en la UI en lugar de alert()
+            console.warn("Por favor, completa todos los campos del producto.");
             return false;
         }
         try {
@@ -207,14 +224,16 @@ const App = () => {
                 price: parseFloat(productData.price),
                 stock: parseInt(productData.stock, 10),
             });
-            alert("Producto añadido exitosamente.");
+            // Usar un modal o un mensaje en la UI en lugar de alert()
+            console.log("Producto añadido exitosamente.");
             setNewProductData({ name: '', price: 0, stock: 0 });
             setShowAddProductForm(false);
             setCart([...cart, { id: scanResult, name: productData.name, price: parseFloat(productData.price), quantity: 1 }]);
             return true;
         } catch (e) {
             console.error("Error al añadir producto:", e);
-            alert("Error al añadir el producto. Intenta de nuevo.");
+            // Usar un modal o un mensaje en la UI en lugar de alert()
+            console.error("Error al añadir el producto. Intenta de nuevo.");
             return false;
         }
     };
@@ -248,7 +267,8 @@ const App = () => {
                 const productRef = doc(db, productsPath, item.id);
                 const productSnap = await getDoc(productRef);
                 if (!productSnap.exists() || productSnap.data().stock < item.quantity) {
-                    alert(`Error: No hay suficiente stock de ${item.name}.`);
+                    // Usar un modal o un mensaje en la UI en lugar de alert()
+                    console.error(`Error: No hay suficiente stock de ${item.name}.`);
                     return;
                 }
             }
@@ -280,7 +300,8 @@ const App = () => {
             setCart([]);
         } catch (e) {
             console.error("Error al finalizar la venta:", e);
-            alert("Error al finalizar la venta. Intenta de nuevo.");
+            // Usar un modal o un mensaje en la UI en lugar de alert()
+            console.error("Error al finalizar la venta. Intenta de nuevo.");
         }
     };
 
@@ -325,6 +346,8 @@ const App = () => {
                     handleCheckout={handleCheckout}
                     handleScan={handleScan}
                 />;
+            case 'stock':
+                return <StockListView products={products} />;
             case 'ticket':
                 return <TicketView currentSaleId={currentSaleId} db={db} setCurrentView={setCurrentView} />;
             default:
@@ -341,6 +364,9 @@ const App = () => {
                     </Button>
                     <Button onClick={() => setCurrentView('pos')} variant={currentView === 'pos' ? 'default' : 'ghost'} className="button flex items-center gap-2">
                         <ScanIcon /> POS
+                    </Button>
+                    <Button onClick={() => setCurrentView('stock')} variant={currentView === 'stock' ? 'default' : 'ghost'} className="button flex items-center gap-2">
+                        <ListIcon /> Stock
                     </Button>
                 </div>
             </nav>
