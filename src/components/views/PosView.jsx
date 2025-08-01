@@ -20,7 +20,7 @@ const PosView = ({
     handleRemoveCartItem,
     handleCheckout
 }) => {
-    // Calcula el total de la compra
+    // Calcula el total del carrito
     const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return (
@@ -42,7 +42,7 @@ const PosView = ({
                                 <p className="text-gray-500">Presiona "Escanear" para iniciar.</p>
                             </div>
                         )}
-                        <Button onClick={() => setIsScanning(!isScanning)} className="w-full md:w-auto" variant="default">
+                        <Button onClick={() => setIsScanning(!isScanning)} className="w-full md:w-auto">
                             {isScanning ? 'Detener Escáner' : 'Escanear'}
                         </Button>
                         <p className="mt-4 text-center text-sm text-gray-600">Último escaneo: <span className="font-mono text-gray-800">{scanResult || 'N/A'}</span></p>
@@ -71,7 +71,7 @@ const PosView = ({
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={() => handleAddProduct(newProductData)} variant="default">Guardar Producto</Button>
+                            <Button onClick={() => handleAddProduct(newProductData)}>Guardar Producto</Button>
                         </CardFooter>
                     </Card>
                 )}
@@ -97,14 +97,16 @@ const PosView = ({
                                         <TableRow key={item.id}>
                                             <TableCell className="font-medium">{item.name}</TableCell>
                                             <TableCell>${item.price.toFixed(2)}</TableCell>
-                                            <TableCell className="flex items-center gap-2">
-                                                <Button onClick={() => handleUpdateCartItem(item.id, -1)} variant="ghost" size="icon"><MinusIcon /></Button>
-                                                <span className="font-bold">{item.quantity}</span>
-                                                <Button onClick={() => handleUpdateCartItem(item.id, 1)} variant="ghost" size="icon"><PlusIcon /></Button>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Button onClick={() => handleUpdateCartItem(item.id, -1)} variant="secondary" size="icon" className="bg-gray-200 hover:bg-gray-300"><MinusIcon /></Button>
+                                                    <span className="font-bold">{item.quantity}</span>
+                                                    <Button onClick={() => handleUpdateCartItem(item.id, 1)} variant="secondary" size="icon" className="bg-gray-200 hover:bg-gray-300"><PlusIcon /></Button>
+                                                </div>
                                             </TableCell>
                                             <TableCell className="font-semibold">${(item.price * item.quantity).toFixed(2)}</TableCell>
                                             <TableCell>
-                                                <Button onClick={() => handleRemoveCartItem(item.id)} variant="ghost" size="icon"><TrashIcon /></Button>
+                                                <Button onClick={() => handleRemoveCartItem(item.id)} variant="secondary" size="icon" className="bg-red-200 hover:bg-red-300 text-red-600"><TrashIcon /></Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
