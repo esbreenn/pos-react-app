@@ -10,7 +10,10 @@ const PosView = ({
   showAddProductForm,
   newProductData,
   setNewProductData,
+  manualItemData,
+  setManualItemData,
   handleAddProduct,
+  handleAddManualItem,
   handleUpdateCartItem,
   handleRemoveCartItem,
   handleCheckout
@@ -79,6 +82,53 @@ const PosView = ({
             </div>
           </div>
         )}
+
+        {/* Agregar producto manual */}
+        <div className="bg-white rounded-2xl shadow-lg border mb-6 mt-4">
+          <div className="px-6 pt-6">
+            <div className="text-xl font-bold text-green-500 mb-4">Agregar producto manual</div>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="manual-name" className="block text-gray-700 font-semibold mb-1">Nombre</label>
+                <input
+                  id="manual-name"
+                  className="w-full rounded-lg border px-4 py-2 bg-gray-50 text-gray-800 shadow focus:ring-2 focus:ring-blue-400 transition"
+                  placeholder="Nombre del producto"
+                  value={manualItemData.name}
+                  onChange={e => setManualItemData({ ...manualItemData, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label htmlFor="manual-price" className="block text-gray-700 font-semibold mb-1">Precio</label>
+                <input
+                  id="manual-price"
+                  type="number"
+                  className="w-full rounded-lg border px-4 py-2 bg-gray-50 text-gray-800 shadow focus:ring-2 focus:ring-blue-400 transition"
+                  placeholder="Precio"
+                  value={manualItemData.price}
+                  onChange={e => setManualItemData({ ...manualItemData, price: parseFloat(e.target.value) })}
+                />
+              </div>
+              <div>
+                <label htmlFor="manual-quantity" className="block text-gray-700 font-semibold mb-1">Cantidad</label>
+                <input
+                  id="manual-quantity"
+                  type="number"
+                  className="w-full rounded-lg border px-4 py-2 bg-gray-50 text-gray-800 shadow focus:ring-2 focus:ring-blue-400 transition"
+                  placeholder="Cantidad"
+                  value={manualItemData.quantity}
+                  onChange={e => setManualItemData({ ...manualItemData, quantity: parseInt(e.target.value, 10) })}
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => handleAddManualItem(manualItemData)}
+              className="mt-6 w-full md:w-auto px-6 py-2 rounded-lg bg-green-500 text-white font-semibold shadow hover:bg-green-600 transition"
+            >
+              Agregar al Carrito
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Carrito */}
