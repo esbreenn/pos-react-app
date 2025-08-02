@@ -69,6 +69,7 @@ const App = () => {
   const videoRef = useRef(null);
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [newProductData, setNewProductData] = useState({ name: '', price: 0, stock: 0 });
+  const [manualItemData, setManualItemData] = useState({ name: '', price: 0, quantity: 1 });
 
   // Ticket State
   const [currentSaleId, setCurrentSaleId] = useState(null);
@@ -231,6 +232,21 @@ const App = () => {
     }
   };
 
+  const handleAddManualItem = (itemData) => {
+    if (!itemData.name || itemData.price <= 0 || itemData.quantity <= 0) {
+      console.warn('Datos del producto manual incompletos.');
+      return;
+    }
+    const manualItem = {
+      id: `manual-${Date.now()}`,
+      name: itemData.name,
+      price: parseFloat(itemData.price),
+      quantity: parseInt(itemData.quantity, 10),
+    };
+    setCart(prev => [...prev, manualItem]);
+    setManualItemData({ name: '', price: 0, quantity: 1 });
+  };
+
   const handleUpdateCartItem = (id, change) => {
     setCart(prevCart => {
       const updatedCart = prevCart.map(item => {
@@ -257,6 +273,7 @@ const App = () => {
       const salesPath = `/artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app'}/public/data/sales`;
 
       for (const item of cart) {
+        if (!products[item.id]) continue;
         const productRef = doc(db, productsPath, item.id);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists() || productSnap.data().stock < item.quantity) {
@@ -266,6 +283,7 @@ const App = () => {
       }
 
       cart.forEach(item => {
+        if (!products[item.id]) return;
         const productRef = doc(db, productsPath, item.id);
         batch.update(productRef, {
           stock: products[item.id].stock - item.quantity,
@@ -331,7 +349,10 @@ const App = () => {
           setShowAddProductForm={setShowAddProductForm}
           newProductData={newProductData}
           setNewProductData={setNewProductData}
+          manualItemData={manualItemData}
+          setManualItemData={setManualItemData}
           handleAddProduct={handleAddProduct}
+          handleAddManualItem={handleAddManualItem}
           handleUpdateCartItem={handleUpdateCartItem}
           handleRemoveCartItem={handleRemoveCartItem}
           handleCheckout={handleCheckout}
