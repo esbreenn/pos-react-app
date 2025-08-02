@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { Button } from '../../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
-import { BackIcon, PrinterIcon } from '../icons/Icons';
 
 const TicketView = ({ currentSaleId, db, setCurrentView }) => {
   const [saleData, setSaleData] = useState(null);
@@ -27,9 +26,7 @@ const TicketView = ({ currentSaleId, db, setCurrentView }) => {
     fetchSale();
   }, [db, currentSaleId]);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   if (ticketError) {
     return (
@@ -46,63 +43,66 @@ const TicketView = ({ currentSaleId, db, setCurrentView }) => {
       </div>
     );
   }
-  
+
   const subtotal = saleData.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const iva = subtotal * 0.21;
   const total = subtotal + iva;
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <div className="max-w-md mx-auto card p-6 shadow-xl print-hidden">
-        <div id="ticket" className="font-mono text-xs text-center">
-          <header className="mb-4">
-            <h1 className="ticket-title">Mi Tienda S.A.</h1>
-            <p className="ticket-info">Calle Falsa 123, Ciudad</p>
-            <p className="ticket-info">Tel: (011) 1234-5678 | CUIT: 20-12345678-9</p>
-            <hr className="my-2 border-dashed" />
-            <div className="meta text-left">
-              <p><span className="font-bold">Ticket Nº:</span> <span>{saleData.id}</span></p>
-              <p><span className="font-bold">Fecha:</span> <span>{new Date(saleData.timestamp.seconds * 1000).toLocaleString()}</span></p>
-              <p><span className="font-bold">Cajero:</span> <span>Admin</span></p>
+    <div className="p-8 bg-white min-h-screen flex justify-center items-start">
+      <div className="max-w-md w-full rounded-2xl bg-gray-50 shadow-xl print:hidden p-6">
+        <div id="ticket" className="font-mono text-sm text-gray-700">
+          <header className="mb-6">
+            <h1 className="text-xl font-bold text-center mb-1">Mi Tienda S.A.</h1>
+            <p className="text-center text-sm">Calle Falsa 123, Ciudad</p>
+            <p className="text-center text-sm mb-2">Tel: (011) 1234-5678 | CUIT: 20-12345678-9</p>
+            <hr className="border-dashed border-t border-gray-400" />
+            <div className="mt-3 space-y-1 text-left text-sm">
+              <p><span className="font-semibold">Ticket Nº:</span> {saleData.id}</p>
+              <p><span className="font-semibold">Fecha:</span> {new Date(saleData.timestamp.seconds * 1000).toLocaleString()}</p>
+              <p><span className="font-semibold">Cajero:</span> Admin</p>
             </div>
-            <hr className="my-2 border-dashed" />
+            <hr className="border-dashed border-t border-gray-400 mt-3" />
           </header>
-  
-          <section id="items" className="mb-4">
-            <Table className="ticket-items">
+
+          <section id="items" className="mb-6">
+            <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cant.</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead>Precio U.</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead className="text-left">Cant.</TableHead>
+                  <TableHead className="text-left">Descripción</TableHead>
+                  <TableHead className="text-right">Precio U.</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {saleData.items.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>${item.price.toFixed(2)}</TableCell>
-                    <TableCell>${(item.price * item.quantity).toFixed(2)}</TableCell>
+                {saleData.items.map((item, i) => (
+                  <TableRow key={i} className="odd:bg-gray-100">
+                    <TableCell className="text-left">{item.quantity}</TableCell>
+                    <TableCell className="text-left">{item.name}</TableCell>
+                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </section>
-  
-          <footer>
-            <div className="ticket-totals mb-4">
-              <p><span className="font-bold">Subtotal:</span> <span>${subtotal.toFixed(2)}</span></p>
-              <p><span className="font-bold">IVA (21%):</span> <span>${iva.toFixed(2)}</span></p>
-              <p className="text-lg font-bold"><span className="text-lg">Total:</span> <span>${total.toFixed(2)}</span></p>
-            </div>
-            <p className="ticket-thanks">¡Gracias por su compra!</p>
+
+          <footer className="text-right space-y-2">
+            <p><span className="font-semibold">Subtotal:</span> ${subtotal.toFixed(2)}</p>
+            <p><span className="font-semibold">IVA (21%):</span> ${iva.toFixed(2)}</p>
+            <p className="text-lg font-bold"><span>Total:</span> ${total.toFixed(2)}</p>
+            <p className="text-center mt-4 italic text-gray-600">¡Gracias por su compra!</p>
           </footer>
         </div>
-        <div className="actions mt-4 flex justify-between gap-2 print-hidden">
-          <Button onClick={() => setCurrentView('pos')} variant="ghost">Volver al POS</Button>
-          <Button onClick={handlePrint} variant="default">Imprimir</Button>
+
+        <div className="mt-6 flex justify-between gap-2">
+          <Button onClick={() => setCurrentView('pos')} variant="ghost" className="flex-1">
+            Volver al POS
+          </Button>
+          <Button onClick={handlePrint} variant="default" className="flex-1">
+            Imprimir
+          </Button>
         </div>
       </div>
     </div>
