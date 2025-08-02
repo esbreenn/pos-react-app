@@ -347,7 +347,7 @@ const App = () => {
                     handleScan={handleScan}
                 />;
             case 'stock':
-                return <StockListView products={products} />;
+            return <StockListView products={products} db={db} />;                
             case 'ticket':
                 return <TicketView currentSaleId={currentSaleId} db={db} setCurrentView={setCurrentView} />;
             default:

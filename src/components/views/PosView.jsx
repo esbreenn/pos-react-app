@@ -1,136 +1,103 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
-import { Input } from '../../ui/input';
-import { Label } from '../../ui/label';
-import { PlusIcon, MinusIcon, TrashIcon } from '../icons/Icons';
+import { PlusIcon, MinusIcon } from '../icons/Icons';
+import {
+    getFirestore,
+    onSnapshot,
+    collection,
+    query,
+    getDocs,
+    doc,
+    updateDoc,
+    addDoc,
+    serverTimestamp,
+} from 'firebase/firestore';
 
-const PosView = ({ 
-    cart, 
-    isScanning, 
-    setIsScanning, 
-    scanResult, 
-    videoRef,
-    showAddProductForm,
-    newProductData,
-    setNewProductData,
-    handleAddProduct,
-    handleUpdateCartItem,
-    handleRemoveCartItem,
-    handleCheckout
-}) => {
-    // Calcula el total del carrito
-    const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+const PosView = ({ cart, products, handleUpdateCartItem, handleRemoveCartItem, handleCheckout }) => {
+
+    const ProductItem = ({ product }) => (
+        <div className="flex items-center justify-between p-2 border-b">
+            <div>
+                <p className="font-semibold">{product.name}</p>
+                <p className="text-sm text-gray-600">${product.price.toFixed(2)}</p>
+            </div>
+            <Button onClick={() => handleUpdateCartItem(product.id, 1)}>
+                <PlusIcon />
+            </Button>
+        </div>
+    );
+
+    const CartItem = ({ item }) => (
+        <div className="flex items-center justify-between p-2 border-b">
+            <div>
+                <p className="font-semibold">{item.name}</p>
+                <p className="text-sm text-gray-600">x{item.quantity} - ${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+            <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => handleUpdateCartItem(item.id, -1)} size="icon"><MinusIcon /></Button>
+                <Button variant="secondary" onClick={() => handleUpdateCartItem(item.id, 1)} size="icon"><PlusIcon /></Button>
+                <Button variant="destructive" onClick={() => handleRemoveCartItem(item.id)}>Eliminar</Button>
+            </div>
+        </div>
+    );
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     return (
-        <div className="p-4 md:p-8 flex flex-col md:flex-row gap-8">
-            <div className="w-full md:w-1/2">
-                <h2 className="text-3xl font-bold mb-6">Punto de Venta</h2>
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle className="text-xl">Escáner de Barcode</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center">
-                        {isScanning ? (
-                            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-900 video-overlay mb-4">
-                                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
-                                <div className="video-overlay"></div>
-                            </div>
-                        ) : (
-                            <div className="w-full aspect-video flex items-center justify-center bg-gray-200 rounded-xl mb-4">
-                                <p className="text-gray-500">Presiona "Escanear" para iniciar.</p>
-                            </div>
-                        )}
-                        <Button onClick={() => setIsScanning(!isScanning)} className="w-full md:w-auto">
-                            {isScanning ? 'Detener Escáner' : 'Escanear'}
-                        </Button>
-                        <p className="mt-4 text-center text-sm text-gray-600">Último escaneo: <span className="font-mono text-gray-800">{scanResult || 'N/A'}</span></p>
-                    </CardContent>
-                </Card>
-                {showAddProductForm && (
+        <div className="p-4">
+            <h2 className="text-3xl font-bold mb-6">Punto de Venta</h2>
+            {/* Usamos la clase grid-cols-2 que ya tienes en tu CSS para la maquetación.
+                Tu CSS ya se encarga de convertirlo en una sola columna en pantallas pequeñas. */}
+            <div className="grid-cols-2">
+                {/* Panel de Productos */}
+                <div>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-xl">Producto no encontrado</CardTitle>
-                            <CardDescription>Añade un nuevo producto con código {scanResult}.</CardDescription>
+                            <CardTitle>Productos</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-col gap-4">
-                                <div className="form-group">
-                                    <Label htmlFor="name">Nombre</Label>
-                                    <Input id="name" placeholder="Nombre del producto" value={newProductData.name} onChange={(e) => setNewProductData({...newProductData, name: e.target.value})} />
-                                </div>
-                                <div className="form-group">
-                                    <Label htmlFor="price">Precio</Label>
-                                    <Input id="price" type="number" placeholder="Precio" value={newProductData.price} onChange={(e) => setNewProductData({...newProductData, price: parseFloat(e.target.value)})} />
-                                </div>
-                                <div className="form-group">
-                                    <Label htmlFor="stock">Stock</Label>
-                                    <Input id="stock" type="number" placeholder="Stock inicial" value={newProductData.stock} onChange={(e) => setNewProductData({...newProductData, stock: parseInt(e.target.value, 10)})} />
-                                </div>
-                            </div>
+                            {products.length > 0 ? (
+                                Object.values(products).map(product => (
+                                    <ProductItem key={product.id} product={product} />
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-500">No hay productos disponibles.</p>
+                            )}
                         </CardContent>
-                        <CardFooter>
-                            <Button onClick={() => handleAddProduct(newProductData)}>Guardar Producto</Button>
-                        </CardFooter>
                     </Card>
-                )}
-            </div>
+                </div>
 
-            <div className="w-full md:w-1/2">
-                <h2 className="text-3xl font-bold mb-6">Carrito de Compras</h2>
-                <Card>
-                    <CardContent className="p-4">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Producto</TableHead>
-                                    <TableHead>Precio</TableHead>
-                                    <TableHead>Cant.</TableHead>
-                                    <TableHead>Total</TableHead>
-                                    <TableHead>Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {cart.length > 0 ? (
-                                    cart.map(item => (
-                                        <TableRow key={item.id}>
-                                            <TableCell className="font-medium">{item.name}</TableCell>
-                                            <TableCell>${item.price.toFixed(2)}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <Button onClick={() => handleUpdateCartItem(item.id, -1)} variant="secondary" size="icon" className="bg-gray-200 hover:bg-gray-300"><MinusIcon /></Button>
-                                                    <span className="font-bold">{item.quantity}</span>
-                                                    <Button onClick={() => handleUpdateCartItem(item.id, 1)} variant="secondary" size="icon" className="bg-gray-200 hover:bg-gray-300"><PlusIcon /></Button>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="font-semibold">${(item.price * item.quantity).toFixed(2)}</TableCell>
-                                            <TableCell>
-                                                <Button onClick={() => handleRemoveCartItem(item.id)} variant="secondary" size="icon" className="bg-red-200 hover:bg-red-300 text-red-600"><TrashIcon /></Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan="5" className="text-center py-8 text-gray-500">
-                                            El carrito está vacío.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                    {cart.length > 0 && (
-                        <CardFooter className="flex flex-col md:flex-row justify-between items-end md:items-center pt-4 border-t">
-                            <div className="w-full text-right text-2xl font-bold">
-                                Total: ${total.toFixed(2)}
+                {/* Panel del Carrito y resumen */}
+                <div className="flex flex-col gap-4">
+                    <Card className="flex-grow">
+                        <CardHeader>
+                            <CardTitle>Carrito</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {cart.length > 0 ? (
+                                cart.map(item => (
+                                    <CartItem key={item.id} item={item} />
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-500">El carrito está vacío.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Resumen y Botón de Checkout */}
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="font-bold text-lg">Total:</span>
+                                <span className="font-bold text-2xl">${total.toFixed(2)}</span>
                             </div>
-                            <Button onClick={handleCheckout} className="mt-4 md:mt-0">
+                            <Button className="w-full button-default" onClick={handleCheckout}>
                                 Finalizar Venta
                             </Button>
-                        </CardFooter>
-                    )}
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );

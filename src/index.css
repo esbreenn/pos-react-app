@@ -274,3 +274,33 @@ h1 {
 .border-dashed {
   border-style: dashed;
 }
+/* Media query para móviles - StockListView */
+@media (max-width: 768px) {
+  .stock-table-wrapper {
+    /* Permite el desplazamiento horizontal solo cuando la tabla se desborda */
+    overflow-x: auto;
+  }
+
+  /* Asegura que la tabla no se colapse por completo */
+  .stock-table-wrapper .table {
+    min-width: 600px;
+  }
+}
+
+/* Media query para móviles - PosView */
+.pos-layout {
+  display: flex;
+  gap: 2rem;
+}
+
+.pos-panel {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .pos-layout {
+    /* Apila los paneles uno encima del otro */
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
